@@ -56,8 +56,55 @@ Definido o formato de spritesheet em [`docs/sprite-spec.md`](sprite-spec.md):
 
 ---
 
+---
+
+## 2026-04-13 (continuação) — Sistema de camadas definido
+
+### Insight principal
+
+O dev usa Claude Code com tasks que têm steps (via TodoWrite). Esses steps são o
+fluxo natural de trabalho — e já estão gravados nos arquivos JSONL. Isso fecha o
+sistema de combate sem nenhuma configuração extra.
+
+### Sistema de 3 camadas
+
+**Camada 1 — Estado das salas** (saúde do módulo, derivada de métricas do código):
+- Iluminada → testes verdes, CI ok, commits recentes
+- Empoeirada → sem commits há meses, sem testes
+- Em chamas → CI falhando, build quebrado
+- Corrompida → alta complexidade, muitos TODOs
+- Tesouro → feature recém entregue, cobertura alta
+
+**Camada 2 — Boss** (dívida técnica, emerge automaticamente):
+- Não é criado manualmente — nasce da análise estática do módulo
+- Tamanho/força proporcional ao nível de dívida
+- Enfraquece conforme o código melhora
+- Desaparece quando o módulo atinge saúde aceitável
+
+**Camada 3 — Quests e Minions** (fluxo real do dev, fonte: TodoWrite):
+- Task principal → Quest
+- Cada step da task → Minion
+- Step `in_progress` → Minion combatendo
+- Step `completed` → Minion derrotado
+- Quest completa → loot dropado
+
+### Por que isso é diferente
+
+Nenhum concorrente usa o TodoWrite do Claude Code como fonte de verdade do combate.
+É o fluxo real do desenvolvedor virado em narrativa, sem configuração extra.
+
+### Fases revisadas
+
+1. MVP: hook → herói caminha para a sala do arquivo sendo editado
+2. Quests: TodoWrite → quests + minions em tempo real
+3. Dungeon vivo: métricas → estado das salas + boss de dívida técnica
+4. GitHub: CI, PRs e loot
+
+---
+
 ## Próximos passos
 
 - [ ] Começar implementação da Fase 1 (ver [`docs/phases.md`](phases.md))
+- [ ] Atualizar `phases.md` com as fases revisadas e o sistema de 3 camadas
 - [ ] Escolher sprites default para o projeto
 - [ ] Prototipar o gerador de salas a partir de estrutura de pastas
