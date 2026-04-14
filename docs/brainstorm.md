@@ -6,135 +6,222 @@ Todos os projetos de visualização de agentes AI (Pixel Agents, claude-office, 
 fazem a mesma coisa: mostram o **agente fazendo trabalho**. É uma vitrine — você vê o personagem
 animando enquanto o Claude digita. Nenhum mostra o **trabalho em si** como um mundo vivo.
 
-## A oportunidade
+## O problema real do dev
 
-A metáfora de dungeon é mais rica do que escritório porque tem progressão, quests, minions e bosses.
-Isso mapeia naturalmente para desenvolvimento de software:
+> "Não sei se o Claude está pensando ou se ele travou."
 
-| Dungeon              | Código real                                                  |
-|----------------------|--------------------------------------------------------------|
-| Sala                 | Módulo / serviço / pasta do projeto                          |
-| Estado da sala       | Saúde do módulo (iluminada, empoeirada, em chamas, selada)   |
-| Boss dentro da sala  | Dívida técnica acumulada naquele módulo                      |
-| Quest                | Task que o dev deu ao Claude (TodoWrite)                     |
-| Minions              | Steps da task (sub-itens do TodoWrite)                       |
-| Herói lutando        | Claude executando cada step (`tool_use` no JSONL)            |
-| Minion morre         | Step marcado como `completed`                                |
-| Quest completa       | Todos os steps `completed`                                   |
-| Loot                 | PR mergeado / feature entregue                               |
-| Novo andar           | Nova sprint / milestone                                      |
+O dev larga o teclado, pega o celular, volta, ainda rodando — travou? O Claude Code é uma caixa
+preta em execução. O dungeon resolve isso tornando o progresso **visível e legível** em tempo real.
 
-> Não existe sala de boss separada. O boss vive na sala onde a dívida técnica está.
-> O herói vai até a sala porque está editando código ali — e encontra o boss ao chegar.
-
-## Ideia central
-
-O mapa do dungeon reflete o **mapa real do repositório** e o **fluxo real de trabalho do dev**.
-
-Quando você dá uma task ao Claude com steps:
-```
-Implement auth:
-  1. Create user model
-  2. Add login endpoint
-  3. Add JWT middleware
-  4. Write tests
-```
-
-Isso vira uma quest com 4 minions. O herói caminha até a sala "auth" e começa a lutar.
-Cada step completado derruba um minion. Quando todos caem, a quest está completa.
-
-Se a sala "auth" tem dívida técnica acumulada (baixa cobertura, muitos TODOs, código complexo),
-há um boss esperando. A sala só fica verdadeiramente limpa quando a dívida é resolvida.
-
-Isso transforma o projeto de "legal de ver" para **realmente útil**: você vê em tempo real
-onde o Claude está, o que está fazendo e qual o estado de saúde de cada parte do código.
+---
 
 ## Sistema de camadas
 
-### Camada 1 — Estado das salas (saúde do código)
-Cada sala tem um estado visual que reflete métricas reais do módulo:
+### Camada 1 — Estado das salas (saúde do módulo)
 
-| Estado        | Visual                         | Sinal do código                              |
-|---------------|--------------------------------|----------------------------------------------|
-| Saudável      | Iluminada, ativa               | Testes verdes, commits recentes, CI ok       |
-| Empoeirada    | Escura, teias de aranha        | Sem commits há meses, sem testes             |
-| Em chamas     | Fogo, vermelho                 | CI falhando, build quebrado                  |
-| Corrompida    | Roxa, sombria                  | Alta complexidade ciclomática, muitos TODOs  |
-| Selada        | Porta trancada                 | Módulo deprecated, sem acesso                |
-| Tesouro       | Dourada, brilhante             | Feature recém entregue, cobertura alta       |
+Cada sala tem um estado visual derivado de métricas reais do módulo. Sem configuração — nasce
+da análise do código.
+
+| Estado        | Visual                        | Sinal do código                               |
+|---------------|-------------------------------|-----------------------------------------------|
+| Saudável      | Iluminada, ativa              | Testes verdes, commits recentes, CI ok        |
+| Empoeirada    | Escura, teias de aranha       | Sem commits há meses, sem testes              |
+| Em chamas     | Fogo, vermelho                | CI falhando, build quebrado                   |
+| Corrompida    | Roxa, sombria                 | Alta complexidade ciclomática, muitos TODOs   |
+| Selada        | Porta trancada                | Módulo deprecated, sem acesso                 |
+| Tesouro       | Dourada, brilhante            | Feature recém entregue, cobertura alta        |
 
 ### Camada 2 — Boss (dívida técnica)
-O boss não é criado manualmente. Ele **emerge** da qualidade do código:
+
+O boss não é criado manualmente. Ele **emerge** da análise estática do módulo:
 - Baixa cobertura de testes → boss mais forte
-- Muitos TODO/FIXME no código → boss maior
+- Muitos TODO/FIXME → boss maior
 - Alta complexidade ciclomática → boss mais agressivo
 - Sem commits há muito tempo → boss enferrujado mas presente
 
-O boss **enfraquece** conforme a dívida é paga (testes adicionados, refatorações, TODOs resolvidos).
-Desaparece quando o módulo atinge um nível saudável.
+O boss **enfraquece** conforme a dívida é paga. Desaparece quando o módulo atinge saúde aceitável.
 
 ### Camada 3 — Quests e Minions (fluxo de trabalho)
-Fonte de verdade: **TodoWrite do Claude Code** (arquivos JSONL em `~/.claude/projects/`).
 
-- Task principal → Quest (aparece como indicador na sala)
-- Cada step → Minion (spawna na sala quando a quest começa)
-- Step `in_progress` → Minion combatendo o herói
-- Step `completed` → Minion derrotado (animação de morte)
-- Todos os steps `completed` → Quest completa, loot dropado
+Fonte de verdade: **TodoWrite do Claude Code** (JSONL em `~/.claude/projects/`).
 
-Isso funciona sem nenhuma configuração extra — é o fluxo natural do dev com Claude Code.
+| Elemento         | O que é                            | Fonte                          |
+|------------------|------------------------------------|--------------------------------|
+| Quest            | Task que o dev deu ao Claude       | Item principal do TodoWrite    |
+| Minion           | Step da task                       | Sub-item do TodoWrite          |
+| Minion lutando   | Step `in_progress`                 | Status do TodoWrite            |
+| Minion morre     | Step `completed`                   | Status update no JSONL         |
+| Quest completa   | Todos os steps `completed`         | Todos os todos `completed`     |
+| Loot             | PR mergeado / feature entregue     | GitHub webhook                 |
+
+### Camada 4 — Hooks como mecanismos da sala
+
+O dungeon lê os hooks que o dev **já registrou** no `.claude/settings.json`. Nenhuma
+configuração extra. Quando o Claude dispara um hook, o mecanismo da sala se ativa visualmente.
+
+| Hook Claude Code | Visual no dungeon                              |
+|------------------|------------------------------------------------|
+| `PreToolUse`     | Runa acende antes do herói agir                |
+| `PostToolUse`    | Mecanismo dispara depois da ação               |
+| `Stop`           | Portal pulsa quando a sessão fecha             |
+| `Notification`   | Sino ressoa na entrada da sala                 |
+
+Muitos devs esquecem quais hooks têm registrados. O dungeon torna visível o que já existe —
+em qual sala, em qual momento, disparado por qual ação.
+
+---
+
+## Mecânicas especiais
+
+### Subagentes como party
+
+Quando o Claude Code spawna subagentes para uma task complexa, cada subagente aparece como
+um herói diferente que parte do principal e vai para uma sala diferente simultaneamente.
+Você vê o "time" se dividindo pelo mapa — que é exatamente o que está acontecendo no código.
+
+### Corredores como acoplamento
+
+A largura e o estado dos corredores entre salas refletem o **acoplamento entre módulos**:
+- Muitos imports/exports entre dois módulos → corredor largo e movimentado
+- Módulos independentes → corredor fino e quieto
+- Dependências circulares → corredor em labirinto, bloqueado
+
+Você está visualizando a arquitetura do projeto, não só o trabalho em andamento.
+
+### Portais de sessão
+
+Quando o Claude Code abre uma sessão, um **portal aparece na entrada do dungeon** e o herói
+entra. Quando a sessão fecha, o herói caminha de volta ao portal e some. O ciclo de vida das
+sessões vira narrativa — sem o herói simplesmente desaparecer do mapa.
+
+### Dungeon envelhece entre as tasks
+
+Quando ninguém está trabalhando, o dungeon não está morto — ele **envelhece**:
+- Salas sem commit acumulam pó visualmente com o tempo
+- O boss de dívida técnica cresce devagar
+- Uma sala sem toque há 6 meses parece diferente de uma tocada ontem
+
+### "Claude está pensando ou travado?"
+
+O herói tem estados visuais baseados nos eventos do JSONL:
+
+| Evento JSONL           | Visual do herói                         |
+|------------------------|-----------------------------------------|
+| `tool_use` chegando    | Herói em ação (ataque, leitura, escrita)|
+| Sem eventos por 2 min  | Interrogação acima da cabeça            |
+| Sem eventos por 5 min  | Sala pisca em alarme                    |
+
+---
+
+## Inspeção de sala
+
+Clicar em uma sala abre um painel com o **porquê** e o **como resolver**:
+
+```
+Sala: auth/          [Em chamas 🔥]
+
+Por que está assim:
+  ✗ CI falhando há 2 dias
+  ✗ Cobertura de testes: 23% (mínimo: 70%)
+  ✗ 8 TODO comments sem resolver
+
+Como limpar:
+  → Adicione testes até atingir 70% de cobertura
+  → Resolva os TODOs ou converta em issues
+  → Corrija o build quebrado
+
+[ Aceitar quest → gera prompt pronto para o Claude ]
+```
+
+O botão "Aceitar quest" gera automaticamente o prompt com os passos específicos para
+resolver aquela dívida técnica — pronto para colar no Claude Code.
+
+---
+
+## Resumo de sessão
+
+Ao final de cada sessão, um recap estilo dungeon run:
+
+```
+Sessão de hoje — 1h23min
+  ✓ 3 quests completadas
+  ✓ 8 minions derrotados
+  ↑ sala "auth" melhorou: corrompida → iluminada
+  ⚡ 4 hooks disparados (2x pre-tool, 2x post-tool)
+  ⚠ boss "api" ainda ativo (dívida técnica pendente)
+  ✗ sala "tests/" continua em chamas
+```
+
+---
+
+## Extensibilidade
+
+### Skills (feitiços da UI)
+
+Ações que o dev pode disparar diretamente do dungeon, sem sair para o terminal:
+
+- "Rodar testes desta sala" → hero lança feitiço de cura, cobertura atualiza
+- "Gerar prompt de limpeza" → prompt pronto para colar no Claude Code
+- "Mostrar git blame" → quem tocou aqui por último e quando
+- "Exportar relatório" → estado do dungeon como markdown
+
+Devs podem adicionar skills customizadas via `.claude-dungeon/skills.json`.
+
+### Plugins (fontes de dados externas)
+
+O core do dungeon só lê Claude Code + métricas do código. Integrações extras são plugins:
+
+- `plugin-github` → CI, PRs e issues como eventos
+- `plugin-sentry` → erros em produção como bosses adicionais
+- `plugin-linear` / `plugin-jira` → issues de qualquer ferramenta como quests
+- `plugin-sonarqube` → métricas de qualidade substituindo análise estática local
+
+API pública para a comunidade criar plugins. O dungeon fica lean — quem precisa de Jira instala.
+
+---
+
+## O ciclo completo
+
+```
+Sala corrompida → dev clica → entende por quê
+  → aceita quest sugerida → cola prompt no Claude
+  → herói entra pelo portal de sessão
+  → quest spawna minions na sala
+  → Claude executa steps → minions caem
+  → hooks disparam → mecanismos acendem
+  → subagentes partem para salas vizinhas
+  → quest completa → loot dropado
+  → boss enfraquece → sala muda de estado
+  → sessão fecha → herói sai pelo portal
+  → resumo de sessão aparece
+```
+
+---
 
 ## Por que é diferente de tudo que existe
 
-| Concorrentes                     | claude-dungeon                                    |
-|----------------------------------|---------------------------------------------------|
-| Mostram *quem* trabalha          | Mostra *onde* no código e *qual o impacto*        |
-| Vitrine de atividade do agente   | Espelho da saúde do codebase                      |
-| Mapa fixo (escritório genérico)  | Mapa gerado do repositório real                   |
-| Bosses = issues manuais          | Boss emerge da dívida técnica automaticamente     |
-| Sem progressão narrativa         | Quests, minions, loot — progressão real           |
-| Requer configuração              | Zero config — lê o fluxo natural do Claude Code   |
+| Concorrentes                      | claude-dungeon                                     |
+|-----------------------------------|----------------------------------------------------|
+| Mostram *quem* trabalha           | Mostra *onde* no código e *qual o impacto*         |
+| Vitrine de atividade do agente    | Espelho da saúde do codebase                       |
+| Mapa fixo (escritório genérico)   | Mapa gerado do repositório real                    |
+| Boss = issue manual               | Boss emerge da dívida técnica automaticamente      |
+| Sem progressão narrativa          | Quests, minions, loot — progressão real            |
+| Requer configuração               | Zero config — lê o fluxo natural do Claude Code    |
+| Hooks invisíveis                  | Hooks visualizados como mecanismos da sala         |
+| Um agente por vez                 | Subagentes como party no mapa                      |
+| Arquitetura invisível             | Corredores como acoplamento entre módulos          |
 
-## O que precisaria ser construído
-
-### 1. Leitor de hooks do Claude Code
-- Ler arquivos JSONL de `~/.claude/projects/`
-- Extrair eventos: `tool_use` (arquivo editado), TodoWrite (tasks/steps), tool results
-- Watcher em tempo real com `chokidar`
-
-### 2. Mapeamento repo → salas
-- Analisar estrutura de pastas do projeto monitorado
-- Gerar salas: cada pasta de nível 1 vira uma sala
-- Calcular métricas por sala: cobertura, complexidade, TODOs, data do último commit
-- Atualizar estado visual da sala com base nas métricas
-
-### 3. Sistema de boss (análise de dívida técnica)
-- Escanear módulo por: arquivos sem testes, TODOs/FIXMEs, complexidade ciclomática
-- Calcular "nível" do boss por sala
-- Atualizar em tempo real quando código muda
-
-### 4. Sistema de quests/minions (TodoWrite)
-- Detectar criação de TodoWrite nos JSONL
-- Spawnar quest + minions na sala correspondente
-- Atualizar status dos minions conforme steps são completados
-
-### 5. Renderer Canvas 2D
-- Salas dinâmicas geradas do repo (não hardcoded)
-- Estados visuais por sala
-- Boss com tamanho variável por nível de dívida
-- Minions por sala durante quests ativas
-- Zoom e pan
-
-### 6. Integração GitHub (fase posterior)
-- PRs mergeados → loot na sala
-- CI status → atualização do estado da sala em tempo real
+---
 
 ## Fases sugeridas
 
-**Fase 1 — MVP:** Claude Code hook → herói caminha para a sala do arquivo sendo editado
-**Fase 2 — Quests:** TodoWrite → quests e minions aparecem na sala em tempo real
-**Fase 3 — Dungeon vivo:** Métricas de código → estado das salas + boss de dívida técnica
-**Fase 4 — GitHub:** CI, PRs e loot
+**Fase 1 — MVP:** Claude Code hook → herói entra pelo portal → caminha para a sala do arquivo  
+**Fase 2 — Quests:** TodoWrite → quests + minions em tempo real + "Claude travado?" detector  
+**Fase 3 — Dungeon vivo:** Métricas → estado das salas + boss + inspeção + resumo de sessão  
+**Fase 4 — Extensibilidade:** Hooks visíveis + skills + plugins + GitHub  
+
+---
 
 ## Referências do ecossistema
 

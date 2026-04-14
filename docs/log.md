@@ -102,9 +102,52 @@ Nenhum concorrente usa o TodoWrite do Claude Code como fonte de verdade do comba
 
 ---
 
+---
+
+## 2026-04-13 (continuação) — Mecânicas, UX e extensibilidade
+
+### Problema central definido
+
+> "Não sei se o Claude está pensando ou se ele travou."
+
+O dungeon resolve isso com estados visuais do herói baseados nos eventos do JSONL:
+eventos chegando = herói em ação, silêncio por 2+ min = interrogação, 5+ min = alarme.
+
+### Novas mecânicas adicionadas ao brainstorm
+
+- **Inspeção de sala** — clicar na sala mostra por que está naquele estado e como limpar,
+  com botão que gera o prompt pronto para colar no Claude Code
+- **Resumo de sessão** — recap estilo dungeon run ao final de cada sessão
+- **Subagentes como party** — cada subagente é um herói diferente que parte para uma sala
+- **Corredores como acoplamento** — largura e estado refletem imports/exports entre módulos
+- **Portais de sessão** — herói entra/sai por portal ao abrir/fechar sessão do Claude Code
+- **Dungeon envelhece** — salas acumulam pó visualmente quando não há commits recentes
+
+### Decisão sobre hooks
+
+Não vamos pedir para o usuário configurar hooks no dungeon. Vamos **ler os hooks que ele
+já registrou** no `.claude/settings.json` e visualizá-los como mecanismos da sala que
+ativam quando o Claude os dispara. Zero configuração extra.
+
+### Extensibilidade
+
+- **Skills** — ações disparadas da UI (rodar testes, gerar prompt, git blame)
+  com suporte a skills customizadas via `.claude-dungeon/skills.json`
+- **Plugins** — fontes de dados externas (GitHub, Sentry, Linear, Jira, SonarQube)
+  via API pública; core fica lean
+
+### Fases revisadas
+
+1. MVP: portal de sessão + herói caminha para a sala do arquivo
+2. Quests: TodoWrite → quests + minions + detector de "travado"
+3. Dungeon vivo: métricas → estado das salas + boss + inspeção + resumo
+4. Extensibilidade: hooks visíveis + skills + plugins + GitHub
+
+---
+
 ## Próximos passos
 
-- [ ] Começar implementação da Fase 1 (ver [`docs/phases.md`](phases.md))
-- [ ] Atualizar `phases.md` com as fases revisadas e o sistema de 3 camadas
+- [ ] Atualizar `phases.md` com todas as fases e mecânicas revisadas
+- [ ] Começar implementação da Fase 1
 - [ ] Escolher sprites default para o projeto
 - [ ] Prototipar o gerador de salas a partir de estrutura de pastas
