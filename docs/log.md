@@ -145,6 +145,40 @@ ativam quando o Claude os dispara. Zero configuração extra.
 
 ---
 
+---
+
+## 2026-04-13 (continuação) — Decisão de arquitetura: standalone, não VS Code extension
+
+### Consideramos VS Code extension
+
+Prós: zero fricção, acesso direto ao workspace, Marketplace como canal de distribuição,
+sem servidor necessário.
+
+### Descartamos por razão estratégica
+
+Claude Code é editor-agnóstico. Roda no terminal, Cursor, Windsurf, Zed, JetBrains e
+qualquer ambiente. Uma VS Code extension excluiria a maioria dos usuários.
+
+### Solução: standalone app com auto-detecção
+
+Os arquivos JSONL ficam em `~/.claude/projects/` — global, independente de editor.
+O claude-dungeon assiste esse diretório e detecta o projeto ativo automaticamente.
+
+```bash
+npx claude-dungeon  # zero config, funciona com qualquer editor
+```
+
+Isso é melhor que a extension: editor-agnóstico, abre no browser, pode ficar num
+segundo monitor enquanto o dev trabalha em qualquer ferramenta.
+
+### Distribuição planejada
+
+- Fase 1: `npx` e `npm install -g`
+- Fase 2: Homebrew
+- Fase 3+: Electron para app nativo com system tray
+
+---
+
 ## Próximos passos
 
 - [ ] Atualizar `phases.md` com todas as fases e mecânicas revisadas

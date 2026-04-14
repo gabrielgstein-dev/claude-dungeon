@@ -6,6 +6,28 @@ Para histórico de decisões, ver [`log.md`](log.md).
 
 ---
 
+## Decisão de arquitetura: standalone app
+
+**claude-dungeon é uma CLI / web app standalone — não uma extensão de editor.**
+
+Claude Code é editor-agnóstico: funciona no terminal, Cursor, Windsurf, Zed, JetBrains e
+qualquer outro ambiente. Uma VS Code extension excluiria a maioria dos usuários.
+
+Os arquivos JSONL ficam em `~/.claude/projects/` — um diretório global, independente de
+editor. O claude-dungeon assiste esse diretório, detecta o projeto ativo automaticamente
+e exibe o dungeon sem nenhuma configuração.
+
+```bash
+npx claude-dungeon       # zero config, detecta o projeto ativo sozinho
+# ou
+npm install -g claude-dungeon && claude-dungeon
+```
+
+Abre no browser. Pode ser colocado num segundo monitor enquanto o dev trabalha em
+qualquer editor ou terminal.
+
+---
+
 ## Visão geral
 
 ```
@@ -20,16 +42,18 @@ MVP         →   Quests      →   Dungeon Vivo →  Extensibilidade
 ## Fase 1 — MVP
 > Herói entra pelo portal e caminha para a sala do arquivo sendo editado.
 
-**Critério de aceite:** abrir um projeto com claude-dungeon rodando, editar um arquivo
-com o Claude Code e ver o herói se mover para a sala correta no mapa.
+**Critério de aceite:** rodar `npx claude-dungeon` em qualquer projeto, editar um arquivo
+com o Claude Code e ver o herói se mover para a sala correta no mapa — sem configuração.
 
 ### Infraestrutura base
 - [ ] Canvas 2D renderer com salas dinâmicas (geradas do repo, não hardcoded)
 - [ ] Zoom e pan
 - [ ] BFS pathfinding entre salas
 - [ ] WebSocket server (Node.js + Express)
-- [ ] Watcher de JSONL (`~/.claude/projects/`) com `chokidar`
-- [ ] CLI para apontar o projeto a monitorar (`claude-dungeon --watch ./meu-projeto`)
+- [ ] Watcher de `~/.claude/projects/` com `chokidar`
+- [ ] Auto-detecção do projeto ativo (sessão JSONL mais recente)
+- [ ] Fallback: `claude-dungeon --watch ./meu-projeto` para apontar manualmente
+- [ ] Abre o browser automaticamente ao iniciar
 
 ### Mapeamento repo → salas
 - [ ] Scanner de estrutura de pastas do projeto
@@ -161,8 +185,20 @@ Cada fase entrega valor independente. Fase 1 já é utilizável sozinha.
 
 ---
 
+## Distribuição
+
+| Canal           | Quando          |
+|-----------------|-----------------|
+| `npx`           | Fase 1          |
+| `npm install -g`| Fase 1          |
+| Homebrew        | Fase 2          |
+| Electron (app nativo / system tray) | Fase 3+ |
+
+---
+
 ## Fora de escopo (por enquanto)
 
+- VS Code extension (excluiria usuários de outros editores e terminal)
 - Editor de pixel art embutido (dev usa Aseprite/Piskel externamente)
 - Multiplayer entre times (possível fase 5)
 - Mobile / app nativo
