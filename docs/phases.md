@@ -58,10 +58,11 @@
 - [ ] Webhook para receber eventos em tempo real (issue opened/closed, PR merged)
 
 #### 2.2 Bosses no mapa
-- [ ] Boss sprite default por sala
-- [ ] Boss aparece quando issue é aberta na sala
-- [ ] Boss desaparece (animação de morte) quando issue é fechada
-- [ ] Tooltip com título da issue ao passar o mouse no boss
+- [ ] Boss aparece **dentro da sala** relacionada à issue (não em sala separada)
+- [ ] Mapeamento issue → sala via label da issue (ex: label `auth` → sala "auth") ou path mencionado no corpo da issue
+- [ ] Boss sprite default; uma sala pode ter múltiplos bosses (múltiplas issues)
+- [ ] Boss desaparece (animação de morte) quando a issue é fechada
+- [ ] Tooltip com título e número da issue ao passar o mouse no boss
 
 #### 2.3 Quests / PRs
 - [ ] PR aberto → quest aparece como indicador visual na sala

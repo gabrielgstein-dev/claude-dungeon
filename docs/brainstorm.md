@@ -11,14 +11,18 @@ animando enquanto o Claude digita. Nenhum mostra o **trabalho em si** como um mu
 A metáfora de dungeon é mais rica do que escritório porque tem progressão, quests e bosses.
 Isso mapeia naturalmente para desenvolvimento de software:
 
-| Dungeon          | Código real                                   |
-|------------------|-----------------------------------------------|
-| Sala             | Módulo / serviço / pasta do projeto           |
-| Boss             | Bug crítico / issue aberta                    |
-| Loot             | Feature entregue / PR mergeado                |
-| Herói explorando | Claude editando arquivos naquele módulo       |
-| Sala "limpa"     | Testes passando / issue fechada               |
-| Novo andar       | Nova sprint / milestone                       |
+| Dungeon              | Código real                                   |
+|----------------------|-----------------------------------------------|
+| Sala                 | Módulo / serviço / pasta do projeto           |
+| Boss dentro da sala  | Issue aberta relacionada àquele módulo        |
+| Loot                 | Feature entregue / PR mergeado                |
+| Herói explorando     | Claude editando arquivos naquele módulo       |
+| Sala "limpa"         | Sem issues abertas / testes passando          |
+| Sala "corrompida"    | CI falhando / testes quebrando                |
+| Nova sprint          | Novo andar do dungeon                         |
+
+> Não existe sala de boss separada. O boss vive na sala onde o problema está.
+> O herói vai até a sala porque está editando código ali — e encontra o boss ao chegar.
 
 ## Ideia central
 
@@ -47,7 +51,7 @@ que evolui conforme o trabalho acontece.
 
 ### 2. Mapeamento repo → salas
 - Analisar a estrutura de pastas do projeto e gerar salas automaticamente
-- Ex: `src/auth/` → Sala "Auth", `src/api/` → Sala "API", `tests/` → Sala "Arena de Testes"
+- Ex: `src/auth/` → Sala "Auth", `src/api/` → Sala "API", `tests/` → Sala "Testes"
 - Salas podem ser geradas dinamicamente conforme o projeto cresce
 
 ### 3. Integração com GitHub
